@@ -54,6 +54,8 @@ console.log(personName, personAge);
 console.log(person.greet());
 
 const hobbies = ['Sports', 'Cooking'];
+// В массив константы можно добавлять эелементы.
+// Это не ошибка, так как переназначение не проихсодит.
 
 const [ hobbyOne, hobbyTwo ] = hobbies;
 
