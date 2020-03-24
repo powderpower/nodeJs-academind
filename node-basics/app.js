@@ -1,63 +1,41 @@
-// если указать ./http - будет искать в папке,
-// без этого ищет глобальный компонент ноды
+/**
+ * если указать ./http - будет искать в папке,
+ * без этого ищет глобальный компонент ноды
+ */
 const http = require('http');
-const fs = require('fs');
 
-// чтобы перезапускался сервер, нужно перезапускать выполнение кода.
+/**
+ * Обработчик запросов.
+ * 
+ * Все, что экспортируется через module.export
+ * запрашивается через require
+ */
+const routes = require('./routes');
 
-const server = http.createServer((req, res) => {
-    console.log(req.url, req.method, req.headers); // информация о запросе.
-    // process.exit(); выход из петли событий.
+console.log(routes.someText);
 
-    const url = req.url,
-    method = req.method;
+/**
+ * Чтобы перезапускался сервер,
+ * нужно перезапускать выполнение кода.
+ */
 
-    if (method == 'POST') {
-        switch (url) {
-            case '/message':
-                const body = [];
+/**
+ * Нода в работе использует единый поток для обработки
+ * всех входящих запросов,
+ * поэтому, что обрабатывать большие асинхронный запросы,
+ * и программа не зависала, необходимо ответы оборачивать в коллбэки.
+ */
+const server = http.createServer(routes.requestHandler);
 
-                // евент, который срабатывает когда приходят данные.
-                req.on('data', (chunk) => {
-                    console.log(chunk);
-                    body.push(chunk);
-                });
-
-                // евент, который срабатывает, когда данные обработаны.
-                req.on('end', () => {
-                    const parsedBody = Buffer.concat(body).toString();
-                    console.log(parsedBody);
-                    const message = parsedBody.split('=')[1];
-
-                    fs.writeFileSync('message.txt', message);
-                });
-                
-                res.setStatusCode = 302;
-                res.setHeader('Location', '/');
-
-                return res.end(); // отправляет ответ.
-        }
-    }
-    
-    switch (url) {
-        case '/':
-            res.setHeader('Content-Type', 'text/html');
-            res.write('<html>');
-            res.write('<head><title>My First PAge</title></head>');
-            res.write('<body><form action="/message" method="POST"><input type="text" name="message"><button type="submit">Send</button></form></body>');
-            res.write('</html>');
-
-            return res.end(); // отправляет ответ.
-    }
-
-    res.setHeader('Content-Type', 'text/html');
-    res.write('<html>');
-    res.write('<head><title>My First PAge</title></head>');
-    res.write('<body><h1>Hello from my Node.js Server</h1></body>');
-    res.write('</html>');
-    res.end(); // отправляет ответ.
-
-    // дальше выводить нельзя.
-});
-
+/**
+ * Процесс обрабатывающий события,
+ * которые вернут колбыки и завершатся.
+ * 
+ * Это событие никогда не заврешится по умолчанию, без особых указаний.
+ */
 server.listen(3000);
+
+/**
+ * Петля живет бесконечно,
+ * чтобы ее заврешить необходимо событие process.exit();
+ */
