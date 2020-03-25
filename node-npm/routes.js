@@ -43,6 +43,8 @@ const requestHandler = (req, res) => {
                     '<body><form action="/message" method="POST"><input type="text" name="message"><button type="submit">Send</button></form></body>'
                 );
             res.write('</html>');
+
+            console.log('nodemon включает авторестарт');
     
             return res.end();
     }
