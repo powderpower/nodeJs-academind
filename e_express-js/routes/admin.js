@@ -11,7 +11,13 @@ const products = [];
  * use используется для всех методов
  */
 router.get('/add-product', (req, res) => {
-    res.render('add-product', { pageTitle: 'Add product', path: 'add-product' });
+    res.render('add-product', {
+        pageTitle: 'Add product',
+        path: 'add-product',
+        formCSS: true,
+        productCss:true,
+        activeAddProduct: true,
+    });
     
     /*
     res.sendFile(path.join(rootDir, 'views', 'add-product.html'));

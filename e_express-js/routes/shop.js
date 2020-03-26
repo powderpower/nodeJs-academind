@@ -10,7 +10,14 @@ router.get('/', (req, res) => {
     // path.join() - чтобы не париться с "/"" в линуксе или "\"" в винде
     
     const products = adminData.products;
-    res.render('shop', {prods: products, pageTitle: 'My shop', path: 'shop' });
+    res.render('shop', {
+        prods: products,
+        pageTitle: 'My shop',
+        path: 'shop',
+        hasProducts: products.length,
+        activeShop: true,
+        productCSS: true,
+    });
     
     /* Отправка html файла
     console.log(adminData.products);
