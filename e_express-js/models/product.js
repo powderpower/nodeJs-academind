@@ -7,34 +7,42 @@ module.exports = class Product {
         this.title = title;
     }
 
-    productsData()
+    static productsData()
     {
         return path.join(rootDir, 'data', 'products.json');
     }
 
     save()
     {
-       const filePath = this.productsData();
+       const filePath = Product.productsData();
 
        fs.readFile(filePath, (err, fileContent) => {
-            if (! err) {
-                return false;
-            }
-        
             let products = [];
         
             if (! err) {
                 products = JSON.parse(fileContent);
             }
         
-        console.log(fileContent);
+            products.push(this);
+
+            fs.writeFile(filePath, JSON.stringify(products), (err) => {
+                console.log(err);
+            });
        });
 
         return this;
     }
 
-    static fetchAll()
+    static fetchAll(callback)
     {
-        return products;
+        const filePath = this.productsData();
+        
+        fs.readFile(filePath, (err, fileContent) => {
+            if (err) {
+                callback([]);
+            }
+
+            callback(JSON.parse(fileContent));
+        });
     }
 }

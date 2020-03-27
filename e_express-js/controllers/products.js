@@ -40,15 +40,16 @@ exports.getProducts = (req, res) => {
     /**
      * path.join() - чтобы не париться с "/"" в линуксе или "\"" в винде
      */
-    const products = Product.fetchAll();
-
-    res.render('shop', {
-        prods: products,
-        pageTitle: 'My shop',
-        path: 'shop',
-        hasProducts: products.length,
-        activeShop: true,
-        productCSS: true,
+    
+    Product.fetchAll((products) => {
+        res.render('shop', {
+            prods: products,
+            pageTitle: 'My shop',
+            path: 'shop',
+            hasProducts: products.length,
+            activeShop: true,
+            productCSS: true,
+        });
     });
     
     /**
