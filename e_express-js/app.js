@@ -1,10 +1,10 @@
 const express       = require('express');
 const bodyParser    = require('body-parser');
 const path          = require('path');
-const expressHbs    = require('express-handlebars');
 
-const adminData = require('./routes/admin');
-const shopRoutes = require('./routes/shop');
+const adminRoutes       = require('./routes/admin');
+const shopRoutes        = require('./routes/shop');
+const errorController   = require('./controllers/error');
 
 /**
  * Дока
@@ -25,6 +25,7 @@ const app = express();
  * прикручивание express-handlebars.
  */
 /*
+const expressHbs    = require('express-handlebars');
 app.engine(
     'hbs', // указывает расширение для файлов
     expressHbs({
@@ -81,18 +82,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 /**
  * Группирование роутов.
  */
-app.use('/admin', adminData.routes);
+app.use('/admin', adminRoutes);
 
 app.use(shopRoutes);
 
-app.use((req, res) => {
-    res.status(404)
-        .render(path.join('errors', '404'), { pageTitle: 'Page not found' });
-        
-        /*
-        .sendFile(path.join(__dirname, '.', 'views', 'errors', '404.html'));
-        */
-});
+app.use(errorController.processNotFoudError);
 
 /** <===== */
 

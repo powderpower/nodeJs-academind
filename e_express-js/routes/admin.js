@@ -1,43 +1,15 @@
 const express   = require('express');
 const path      = require('path');
 
-const rootDir   = require('../util/path');
+const productsController = require('../controllers/products');
 
 const router = express.Router();
 
-const products = [];
-
 /** 
- * use используется для всех методов
+ * .use() используется для всех методов
  */
-router.get('/add-product', (req, res) => {
-    res.render('add-product', {
-        pageTitle: 'Add product',
-        path: 'add-product',
-        formCSS: true,
-        productCss:true,
-        activeAddProduct: true,
-    });
-    
-    /*
-    res.sendFile(path.join(rootDir, 'views', 'add-product.html'));
-    */
-});
+router.get('/add-product', productsController.indexAddProduct);
 
-router.post('/add-product', (req, res) => {
-    console.log(req.body);
+router.post('/add-product', productsController.addProduct);
 
-    /**
-     * Объект удерживается в памяти, поэтому таким образом,
-     * можно добавлять данные, и обмениваться объектами.
-     * соответственно, распространяется для всех запросов,
-     * пока память не будет очищена.
-     */
-    products.push({ title: req.body.title });
-    res.redirect('/');
-});
-
-module.exports = {
-    routes: router,
-    products: products,
-};
+module.exports = router;
