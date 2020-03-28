@@ -5,18 +5,16 @@
 const Product = require('../models/product');
 
 exports.indexAddProduct = (req, res) => {
-    res.render('add-product', {
+    res.render('admin/add-product', {
         pageTitle: 'Add product',
         path: 'add-product',
-        formCSS: true,
-        productCss:true,
         activeAddProduct: true,
     });
 
     /*
     res.sendFile(path.join(rootDir, 'views', 'add-product.html'));
     */
-}
+};
 
 exports.addProduct = (req, res) => {
     console.log(req.body);
@@ -30,31 +28,23 @@ exports.addProduct = (req, res) => {
     /** для обработки без моделей.
      * products.push({ title: req.body.title });
      */
-    const product = new Product(req.body.title);
+    const title         = req.body.title;
+    const imageUrl      = req.body.image_url;
+    const price         = req.body.price;
+    const description   = req.body.description;
+
+    const product = new Product(title, imageUrl, price, description);
     product.save();
     
     res.redirect('/');
-}
+};
 
 exports.getProducts = (req, res) => {
-    /**
-     * path.join() - чтобы не париться с "/"" в линуксе или "\"" в винде
-     */
-    
     Product.fetchAll((products) => {
-        res.render('shop', {
+        res.render('admin/products', {
             prods: products,
-            pageTitle: 'My shop',
-            path: 'shop',
-            hasProducts: products.length,
-            activeShop: true,
-            productCSS: true,
+            pageTitle: 'Admin Products',
+            activeAdminProducts: true,
         });
     });
-    
-    /**
-     * Отправка html файла
-     * console.log(adminData.products);
-     * res.sendFile(path.join(rootDir, 'views', 'shop.html'));
-     */
-}
+};
