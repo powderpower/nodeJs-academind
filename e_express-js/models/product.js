@@ -2,7 +2,21 @@ const fs    = require('fs');
 const path  = require('path');
 const rootDir = require('../utils/path');
 
-module.exports = class Product {
+const getDataFromFile = (filePAth, callBack) => {
+    fs.readFile(filePAth, (err, fileContent) => {
+        if (err) {
+            callBack([]);
+
+            return this;
+        }
+
+        callBack(JSON.parse(fileContent));
+
+        return this;
+    });
+}
+module.exports = class Product
+{
     constructor(title, imageUrl, price, description) {
         this.title          = title;
         this.image_url      = imageUrl;
@@ -17,35 +31,33 @@ module.exports = class Product {
 
     save()
     {
-       const filePath = Product.productsData();
-
-       fs.readFile(filePath, (err, fileContent) => {
-            let products = [];
+        this.id = Math.random().toString();
         
-            if (! err) {
-                products = JSON.parse(fileContent);
-            }
-        
+        getDataFromFile(Product.productsData(), (products) => {
             products.push(this);
 
-            fs.writeFile(filePath, JSON.stringify(products), (err) => {
+            fs.writeFile(Product.productsData(), JSON.stringify(products), (err) => {
                 console.log(err);
             });
-       });
+        });
 
         return this;
     }
 
     static fetchAll(callback)
     {
-        const filePath = this.productsData();
-        
-        fs.readFile(filePath, (err, fileContent) => {
-            if (err) {
-                callback([]);
-            }
+        getDataFromFile(Product.productsData(), callback);
 
-            callback(JSON.parse(fileContent));
+        return this;
+    }
+
+    static findById(id, callBack) {
+        getDataFromFile(Product.productsData(), (products) => {
+            const product = products.find((item) => {
+                return item.id == id;
+            });
+
+            callBack(product);
         });
     }
 }

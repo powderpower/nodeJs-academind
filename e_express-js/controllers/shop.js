@@ -1,4 +1,5 @@
-const Product = require('../models/product');
+const Product   = require('../models/product');
+const Cart      = require('../models/cart');
 
 exports.getProducts = (req, res) => {
     /**
@@ -37,10 +38,30 @@ exports.getCart = (req, res) => {
     });
 };
 
+exports.addToCart = (req, res) => {
+    const productId = req.body.product_id;
+    Product.findById(productId, (product) => {
+        Cart.addProduct(productId, product.price);
+    });
+
+    res.redirect('/cart');
+};
+
 exports.getOrders = (req, res) => {
     res.render('shop/orders', {
         pageTitle: 'Your orders',
         activeOrders:true,
+    });
+};
+
+exports.getProduct = (req, res) => {
+    const productId = req.params.productId;
+    Product.findById(productId, (product) => {
+        res.render('shop/product-detail', {
+            product: product,
+            pageTitle: product.title + ' | Details of product',
+            activeProducts: true,
+        });
     });
 };
 
