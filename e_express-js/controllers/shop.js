@@ -32,8 +32,15 @@ exports.getIndex = (req, res) => {
 
 exports.getCart = (req, res) => {
     res.render('shop/cart', {
-        pageTitle: 'Your Cart',
+        pageTitle: 'Your cart',
         activeCart: true,
+    });
+};
+
+exports.getOrders = (req, res) => {
+    res.render('shop/orders', {
+        pageTitle: 'Your orders',
+        activeOrders:true,
     });
 };
 
