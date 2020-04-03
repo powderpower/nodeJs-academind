@@ -1,7 +1,3 @@
-/** для обработки без моделей.
- * const products = [];
- */
-
 const Product = require('../models/product');
 
 exports.indexAddProduct = (req, res) => {
@@ -10,76 +6,100 @@ exports.indexAddProduct = (req, res) => {
         activeAddProduct: true,
         product: new Product,
     });
-
-    /*
-    res.sendFile(path.join(rootDir, 'views', 'add-product.html'));
-    */
 };
 
 exports.addProduct = (req, res) => {
-    console.log(req.body);
     /**
-     * Объект удерживается в памяти, поэтому таким образом,
-     * можно добавлять данные, и обмениваться объектами.
-     * соответственно, распространяется для всех запросов,
-     * пока память не будет очищена.
+     * Создание через hasMany
      */
-
-    /** для обработки без моделей.
-     * products.push({ title: req.body.title });
-     */
-    const title         = req.body.title;
-    const imageUrl      = req.body.image_url;
-    const price         = req.body.price;
-    const description   = req.body.description;
-
-    const product = new Product(title, imageUrl, price, description);
-    product.save();
+    let query = req.user.createProduct({
+        title:          req.body.title,
+        image_url:      req.body.image_url,
+        price:          req.body.price,
+        description:    req.body.description,
+        userId:         req.user.id,
+    });
     
-    res.redirect('/');
+    /**
+     * Cосздание модели и строки
+    let query = Product.create({
+        title:          req.body.title,
+        image_url:      req.body.image_url,
+        price:          req.body.price,
+        description:    req.body.description,
+        userId:         req.user.id,
+    });
+    */
+
+    return query
+        .then(v => res.redirect('/admin/products'))
+        .catch(x => console.log(x));
 };
 
 exports.indexEditProduct = (req, res) => {
-    const product = Product.findById(req.params.productId, (baseProduct) => {
-        if (! baseProduct) {
-            return res.redirect('/not-found');
-        }
-        
-        res.render('admin/edit-product', {
-            pageTitle: 'Edit product',
-            activeAddProduct: true,
-            product: baseProduct,
-        });
+    
+    /** let query = Product.findByPk(req.params.productId); **/
+
+    let query = req.user.getProducts({
+        where: {
+            id: req.params.productId,
+        },
     });
+    
+    return query
+        .then( products => {
+            if (! products.length) {
+                return res.redirect('/not-found');
+            }
+
+            let product = products[0];
+            
+            res.render('admin/edit-product', {
+                pageTitle: 'Edit product',
+                activeAddProduct: true,
+                product: product,
+            });
+        })
+        .catch(x => console.log(x));
 };
 
 exports.editProduct = (req, res) => {
-    const producId      = req.body.id;
-    const title         = req.body.title;
-    const imageUrl      = req.body.image_url;
-    const price         = req.body.price;
-    const description   = req.body.description;
+    let query = Product.findByPk(req.body.id);
 
-    const product = new Product(title, imageUrl, price, description, producId);
-    product.save();
+    return query
+        .then(product => {
+            product.title       = req.body.title;
+            product.image_url   = req.body.image_url;
+            product.price       = req.body.price;
+            product.description = req.body.description;
 
-    res.redirect('/admin/products');
+            return product.save();
+        })
+        .then(v => res.redirect('/admin/products'))
+        .catch(x => console.log(x));
 };
 
 exports.deleteProduct = (req, res) => {
-    const producId      = req.body.id;
+    let query = Product.destroy({
+        where: {
+            id: req.body.id,
+        }
+    });
 
-    Product.deleteById(producId);
-    
-    res.redirect('/admin/products');
+    return query.then(v => res.redirect('/admin/products'));
 };
 
 exports.getProducts = (req, res) => {
-    Product.fetchAll((products) => {
+    /** let query = Product.findAll(); */
+
+    let query = req.user.getProducts();
+    
+    return query.then(products => {
         res.render('admin/products', {
             prods: products,
             pageTitle: 'Admin Products',
             activeAdminProducts: true,
         });
-    });
+    })
+    .catch(x => console.log(x));
 };
