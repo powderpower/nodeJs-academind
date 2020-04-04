@@ -1,5 +1,4 @@
 const Product   = require('../models/product');
-const Cart      = require('../models/cart');
 
 exports.getProducts = (req, res) => {
     let query = Product.findAll();
@@ -106,10 +105,17 @@ exports.deleteFromCart = (req, res) => {
 };
 
 exports.getOrders = (req, res) => {
-    res.render('shop/orders', {
-        pageTitle: 'Your orders',
-        activeOrders:true,
-    });
+    let query = req.user.getOrders({ include: ['products'] /** аналог with в ларавеле */ });
+
+    return query
+        .then(orders => res.render('shop/orders', {
+            pageTitle: 'Your orders',
+            activeOrders:true,
+            orders: orders,
+        }))
+        .catch(x => console.log(x));
+    
+
 };
 
 exports.getProduct = (req, res) => {
@@ -138,4 +144,34 @@ exports.getCheckout = (req, res) => {
         pageTitle: 'Checkout',
         activeCheckout: true,
     });
+};
+
+exports.createOrder = (req, res, next) => {
+    let query = req.user.getCart(),
+    cartProducts = [],
+    fetchedCart = [];
+
+    return query
+        .then(cart => {
+            fetchedCart = cart;
+
+            return cart.getProducts();
+        })
+        .then(products => {
+            cartProducts = products;
+
+            return req.user.createOrder();
+        })
+        .then(order => {
+            order.addProducts(cartProducts.map(product => {
+                product.order_item = {
+                    quantity: product.cart_item.quantity,
+                };
+
+                return product;
+            }));
+        })
+        .then(v => fetchedCart.setProducts(null))
+        .then(v => res.redirect('/orders'))
+        .catch(x => console.log(x));
 };

@@ -56,7 +56,7 @@ exports.indexEditProduct = (req, res) => {
             
             res.render('admin/edit-product', {
                 pageTitle: 'Edit product',
-                activeAddProduct: true,
+                activeAdminProducts: true,
                 product: product,
             });
         })

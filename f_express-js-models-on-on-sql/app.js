@@ -50,6 +50,8 @@ const Product   = require('./models/product');
 const User      = require('./models/user');
 const Cart      = require('./models/cart');
 const CartItem  = require('./models/cart_item');
+const Order     = require('./models/order');
+const OrderItem = require('./models/order_item');
 
 /**
  * Объявление релейшенов.
@@ -61,14 +63,21 @@ Product.belongsTo(User, {
 
 User.hasMany(Product);
 User.hasOne(Cart);
+User.hasMany(Order);
 
 Cart.belongsTo(User, {
     constraints: true,
     onDelete: 'CASCADE',
 });
 
+Order.belongsTo(User, {
+    constraints: true,
+    onDelete: 'CASCADE',
+});
+
 Cart.belongsToMany(Product, { through: CartItem });
 Product.belongsToMany(Cart, { through: CartItem });
+Order.belongsToMany(Product, { through: OrderItem });
 
 let userIdentity = null;
 
@@ -81,14 +90,19 @@ sequelize
     .then(v => User.findByPk(1))
     .then(user => {
         if (! user) {
-            user = User.create({
+            let query = User.create({
                 name: 'admin',
                 email: 'ace7upp@gmail.com',
                 password: 'zqGML5g3JPpQZazx',
             });
-        }
 
-        userIdentity = user;
+            return query
+                .then(newUser => {
+                    userIdentity = newUser;
+
+                    return userIdentity;
+                });
+        }
 
         return user;
     })
