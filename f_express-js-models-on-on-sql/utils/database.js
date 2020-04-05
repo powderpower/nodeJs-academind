@@ -14,7 +14,11 @@
         host: db.config.host,
         define: {
             underscored: true,
-    }
+        },
+        dialectOptions: {
+            useUTC: false,
+        },
+        timezone: '+03:00',
  });
 
  module.exports = sequelize;

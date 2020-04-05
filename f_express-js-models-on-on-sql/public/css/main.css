@@ -23,6 +23,20 @@ form {
   text-align: center;
 }
 
+.user-message {
+  margin: auto;
+  width: 90%;
+  text-align: center;
+  font-weight: 600;
+  padding:10px;
+  border-radius: 3px;
+}
+
+.user-message.danger {
+  background-color: #ff4d97;
+  color: white;
+}
+
 .image {
   height: 20rem;
 }
@@ -233,6 +247,10 @@ form {
 }
 
 @media (min-width: 768px) {
+  .user-message {
+    width: 30rem;
+  }
+  
   .main-header__nav {
     display: flex;
   }

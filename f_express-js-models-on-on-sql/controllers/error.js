@@ -1,13 +1,19 @@
 const path = require('path');
 
-exports.processNotFoudError = (req, res) => {
+exports.throwNotFoud = (req, res) => {
     res.status(404)
         .render('errors/404', {
             pageTitle: 'Page not found',
-            isAuthenticated: req.session.isLoggedIn,
         });
         
         /*
         .sendFile(path.join(__dirname, '.', 'views', 'errors', '404.html'));
         */
+};
+
+exports.throwBadRequest = (req, res) => {
+    res.status(400)
+        .render('errors/400', {
+            pageTitle: 'Access denied',
+        });
 };

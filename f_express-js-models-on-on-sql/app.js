@@ -2,27 +2,21 @@ const express       = require('express');
 const bodyParser    = require('body-parser');
 const path          = require('path');
 const session       = require('express-session');
-/** (session) - с каким пакетом объединить */
-const MySQLStore      = require('express-mysql-session') (session);
 
-const db = require('./config/db');
+/** (session) - с каким пакетом объединить */
+const MySQLStore    = require('express-mysql-session') (session);
+const db            = require('./config/db');
+const sequelize     = require('./utils/database');
 
 const adminRoutes       = require('./routes/admin');
 const shopRoutes        = require('./routes/shop');
 const errorController   = require('./controllers/error');
 const authRoutes        = require('./routes/auth');
 
-const sequelize = require('./utils/database');
-
 const app = express();
 
 app.set('view engine', 'ejs');
 app.set('views', path.join('views'));
-
-app.use((req, res, next) => {
-    console.log('In the middleware');
-    next();
-});
 
 app.use(bodyParser.urlencoded({extended: false}));
 
@@ -76,22 +70,62 @@ app.use((req, res, next) => {
 });
 
 /**
+ * Флэш-уведомления.
+ */
+const flash = require('connect-flash');
+app.use(flash());
+
+/**
+ * Объявление middleware
+ */
+const authMiddleware    = require('./middleware/is_auth');
+
+const csrf              = require('csurf');
+const csrfProtection    = csrf();
+
+/**
+ * csrf проверка отрабаытвает
+ * для всех не GET запросов.
+ */
+app.use(csrfProtection);
+
+/**
+ * Раздать переменные на все вью
+ * НО - csrfToken нужно прописать в формы.
+ */
+app.use((req, res, next) => {
+    res.locals.isAuthenticated  = req.session.isLoggedIn;
+    res.locals.csrfToken        = req.csrfToken();
+    res.locals.errorMessage     = req.flash('error');
+
+    console.log(req.flash('error'));
+
+    next();
+})
+
+app.use((req, res, next) => {
+    console.log('\x1b[33m%s\x1b[0m', 'In the middleware. Token: ' + req.csrfToken());
+    next();
+});
+
+/**
  * Объявление использования роутов.
  */
-app.use('/admin', adminRoutes);
-app.use(shopRoutes);
+app.use('/admin', authMiddleware, adminRoutes);
 app.use(authRoutes);
-app.use(errorController.processNotFoudError);
+app.use(shopRoutes);
+app.use(errorController.throwNotFoud);
 
 /**
  * Models
  */
-const Product   = require('./models/product');
-const User      = require('./models/user');
-const Cart      = require('./models/cart');
-const CartItem  = require('./models/cart_item');
-const Order     = require('./models/order');
-const OrderItem = require('./models/order_item');
+const Product       = require('./models/product');
+const User          = require('./models/user');
+const Cart          = require('./models/cart');
+const CartItem      = require('./models/cart_item');
+const Order         = require('./models/order');
+const OrderItem     = require('./models/order_item');
+const PasswordReset = require('./models/password_reset');
 
 /**
  * Объявление релейшенов.
@@ -101,9 +135,15 @@ Product.belongsTo(User, {
     onDelete: 'SET NULL',
 });
 
+PasswordReset.belongsTo(User, {
+    constraints: true,
+    onDelete: 'CASCADE',
+});
+
 User.hasMany(Product);
 User.hasOne(Cart);
 User.hasMany(Order);
+User.hasOne(PasswordReset);
 
 Cart.belongsTo(User, {
     constraints: true,
@@ -124,6 +164,6 @@ Order.belongsToMany(Product, { through: OrderItem });
  */
 sequelize
     /** { force: true } только для девелопа - продакш - миграции */
-    .sync({ force: true })
+    .sync()
     .then(v => app.listen(3000))
     .catch(err => console.log(err));

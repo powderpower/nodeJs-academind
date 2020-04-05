@@ -5,7 +5,6 @@ exports.indexAddProduct = (req, res) => {
         pageTitle: 'Add product',
         activeAddProduct: true,
         product: new Product,
-        isAuthenticated: req.session.isLoggedIn,
     });
 };
 
@@ -59,7 +58,6 @@ exports.indexEditProduct = (req, res) => {
                 pageTitle: 'Edit product',
                 activeAdminProducts: true,
                 product: product,
-                isAuthenticated: req.session.isLoggedIn,
             });
         })
         .catch(x => console.log(x));
@@ -70,14 +68,18 @@ exports.editProduct = (req, res) => {
 
     return query
         .then(product => {
+            if (product.userId != req.user.id) {
+                return res.redirect('/admin/products');
+            }
+            
             product.title       = req.body.title;
             product.image_url   = req.body.image_url;
             product.price       = req.body.price;
             product.description = req.body.description;
 
-            return product.save();
+            return product.save()
+                .then(v => res.redirect('/admin/products'));
         })
-        .then(v => res.redirect('/admin/products'))
         .catch(x => console.log(x));
 };
 
@@ -85,6 +87,7 @@ exports.deleteProduct = (req, res) => {
     let query = Product.destroy({
         where: {
             id: req.body.id,
+            user_id: req.user.id,
         }
     });
 
@@ -101,7 +104,6 @@ exports.getProducts = (req, res) => {
             prods: products,
             pageTitle: 'Admin Products',
             activeAdminProducts: true,
-            isAuthenticated: req.session.isLoggedIn,
         });
     })
     .catch(x => console.log(x));

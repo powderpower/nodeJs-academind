@@ -6,7 +6,7 @@
         <%- include('../includes/navigation.ejs') %>
 
             <main>
-                <% if (prods.length > 0) { %>
+                <% if (prods.length) { %>
                     <div class="grid">
                         <% for (let product of prods) { %>
                             <article class="card product-item">
@@ -29,6 +29,7 @@
                                 <div class="card__actions">
                                     <a href="/admin/edit-product/<%= product.id %>" class="btn">Edit</a>
                                     <form action="/admin/delete-product" method="POST">
+                                        <%- include('../includes/csrf_protection.ejs') %>
                                         <input type="hidden" name="id" value="<%= product.id %>">
                                         <button class="btn" type="submit">Delete</button>
                                     </form>
