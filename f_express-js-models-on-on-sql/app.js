@@ -1,10 +1,16 @@
 const express       = require('express');
 const bodyParser    = require('body-parser');
 const path          = require('path');
+const session       = require('express-session');
+/** (session) - с каким пакетом объединить */
+const MySQLStore      = require('express-mysql-session') (session);
+
+const db = require('./config/db');
 
 const adminRoutes       = require('./routes/admin');
 const shopRoutes        = require('./routes/shop');
 const errorController   = require('./controllers/error');
+const authRoutes        = require('./routes/auth');
 
 const sequelize = require('./utils/database');
 
@@ -22,10 +28,42 @@ app.use(bodyParser.urlencoded({extended: false}));
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use((req, res, next) => {
-    let query = User.findByPk(1);
+const sessionStore = new MySQLStore({
+    host: db.config.host,
+    port: db.config.port,
+    user: db.config.user,
+    password: db.config.password,
+    database: db.config.database,
+});
 
-    query
+const hour = 3600000;
+
+app.use(session({
+    secret: 'my secret', // для продакшна должен быть хэш
+    resave: false, // не перезаписывать при каждом реквесте
+    saveUninitialized: false, // не перезаписывать, если ничего не было изменено
+    store: sessionStore,
+    cookie: {
+        maxAge: 14 * 24 * hour,
+    },
+}));
+
+app.use((req, res, next) => {
+    
+    console.log(req.session.user);
+    
+    if (! req.session.user) {
+        return next();
+    }
+    
+    /** если записан в сессию - присвоить его в модель запроса
+     * потому-что в сессию не пишется модель,
+     * а только строка пользователя
+    */
+
+    let query = User.findByPk(req.session.user.id);
+
+    return query
         .then(user => {
             /**
              * Добавляет модель юзера в запрос.
@@ -37,10 +75,12 @@ app.use((req, res, next) => {
         .catch(x => console.log(x));
 });
 
+/**
+ * Объявление использования роутов.
+ */
 app.use('/admin', adminRoutes);
-
 app.use(shopRoutes);
-
+app.use(authRoutes);
 app.use(errorController.processNotFoudError);
 
 /**
@@ -58,7 +98,7 @@ const OrderItem = require('./models/order_item');
  */
 Product.belongsTo(User, {
     constraints: true,
-    onDelete: 'CASCADE',
+    onDelete: 'SET NULL',
 });
 
 User.hasMany(Product);
@@ -79,40 +119,11 @@ Cart.belongsToMany(Product, { through: CartItem });
 Product.belongsToMany(Cart, { through: CartItem });
 Order.belongsToMany(Product, { through: OrderItem });
 
-let userIdentity = null;
-
 /**
  * Создает таблицы из созданных моделей.
  */
 sequelize
     /** { force: true } только для девелопа - продакш - миграции */
-    .sync()
-    .then(v => User.findByPk(1))
-    .then(user => {
-        if (! user) {
-            let query = User.create({
-                name: 'admin',
-                email: 'ace7upp@gmail.com',
-                password: 'zqGML5g3JPpQZazx',
-            });
-
-            return query
-                .then(newUser => {
-                    userIdentity = newUser;
-
-                    return userIdentity;
-                });
-        }
-
-        return user;
-    })
-    .then(user => {
-        return user.getCart();
-    })
-    .then(cart => {
-        if (! cart && userIdentity) {
-            userIdentity.createCart();
-        }
-    })
+    .sync({ force: true })
     .then(v => app.listen(3000))
     .catch(err => console.log(err));

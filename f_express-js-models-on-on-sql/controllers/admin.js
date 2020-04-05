@@ -5,6 +5,7 @@ exports.indexAddProduct = (req, res) => {
         pageTitle: 'Add product',
         activeAddProduct: true,
         product: new Product,
+        isAuthenticated: req.session.isLoggedIn,
     });
 };
 
@@ -58,6 +59,7 @@ exports.indexEditProduct = (req, res) => {
                 pageTitle: 'Edit product',
                 activeAdminProducts: true,
                 product: product,
+                isAuthenticated: req.session.isLoggedIn,
             });
         })
         .catch(x => console.log(x));
@@ -99,6 +101,7 @@ exports.getProducts = (req, res) => {
             prods: products,
             pageTitle: 'Admin Products',
             activeAdminProducts: true,
+            isAuthenticated: req.session.isLoggedIn,
         });
     })
     .catch(x => console.log(x));

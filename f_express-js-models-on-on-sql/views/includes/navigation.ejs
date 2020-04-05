@@ -9,30 +9,49 @@
             <li class="main-header__item">
                 <a class="<%= (typeof activeProducts !== 'undefined' && activeProducts) ? 'active' : null %>" href="/products">Products</a>
             </li>
-            <li class="main-header__item">
-                <a class="<%= (typeof activeCart !== 'undefined' && activeCart) ? 'active' : null %>" href="/cart">Cart</a>
-            </li>
-            <li class="main-header__item">
-                <a class="<%= (typeof activeOrders !== 'undefined' && activeOrders) ? 'active' : null %>" href="/orders">Orders</a>
-            </li>
-            <li class="main-header__item">
-                <a class="<%= (typeof activeAddProduct !== 'undefined' && activeAddProduct) ? 'active' : null %>" href="/admin/add-product">Add product</a>
-            </li>
-            <li class="main-header__item">
-                <a class="<%= (typeof activeAdminProducts !== 'undefined' && activeAdminProducts) ? 'active' : null %>" href="/admin/products">Admin products</a>
-            </li>
+            <% if (typeof isAuthenticated !== 'undefined' && isAuthenticated) { %>
+                <li class="main-header__item">
+                    <a class="<%= (typeof activeCart !== 'undefined' && activeCart) ? 'active' : null %>" href="/cart">Cart</a>
+                </li>
+                <li class="main-header__item">
+                    <a class="<%= (typeof activeOrders !== 'undefined' && activeOrders) ? 'active' : null %>" href="/orders">Orders</a>
+                </li>
+                <li class="main-header__item">
+                    <a class="<%= (typeof activeAddProduct !== 'undefined' && activeAddProduct) ? 'active' : null %>" href="/admin/add-product">Add product</a>
+                </li>
+                <li class="main-header__item">
+                    <a class="<%= (typeof activeAdminProducts !== 'undefined' && activeAdminProducts) ? 'active' : null %>" href="/admin/products">Admin products</a>
+                </li>
+            <% } %>
+        </ul>
+        <ul class="main-header__item-list">
+            <% if (typeof isAuthenticated !== 'undefined' && isAuthenticated) { %>
+                <li class="main-header__item">
+                    <form action="/logout" method="post">
+                        <button type="submit">Logout</button>
+                    </form>
+                </li>
+            <% } else { %>
+                <li class="main-header__item">
+                    <a class="<%= (typeof activeLogin !== 'undefined' && activeLogin) ? 'active' : null %>" href="/login">Login</a>
+                </li>
+                <li class="main-header__item">
+                    <a class="<%= (typeof activeSignup !== 'undefined' && activeSignup) ? 'active' : null %>" href="/signup">Signup</a>
+                </li>
+            <% } %>
         </ul>
     </nav>
 </header>
 
 <nav class="mobile-nav">
-        <ul class="mobile-nav__item-list">
-            <li class="mobile-nav__item">
-                <a class="<%= (typeof activeShop !== 'undefined' && activeShop) ? 'active' : null %>" href="/">Shop</a>
-            </li>
-            <li class="mobile-nav__item">
-                <a class="<%= (typeof activeProducts !== 'undefined' && activeProducts) ? 'active' : null %>" href="/products">Products</a>
-            </li>
+    <ul class="mobile-nav__item-list">
+        <li class="mobile-nav__item">
+            <a class="<%= (typeof activeShop !== 'undefined' && activeShop) ? 'active' : null %>" href="/">Shop</a>
+        </li>
+        <li class="mobile-nav__item">
+            <a class="<%= (typeof activeProducts !== 'undefined' && activeProducts) ? 'active' : null %>" href="/products">Products</a>
+        </li>
+        <% if (typeof isAuthenticated !== 'undefined' && isAuthenticated) { %>
             <li class="mobile-nav__item">
                 <a class="<%= (typeof activeCart !== 'undefined' && activeCart) ? 'active' : null %>" href="/cart">Cart</a>
             </li>
@@ -47,5 +66,18 @@
                 <a class="<%= (typeof activeAdminProducts !== 'undefined' && activeAdminProducts) ? 'active' : null %>" href="/admin/products">Admin Products
                 </a>
             </li>
-        </ul>
+            <li class="mobile-nav__item">
+                <form action="/logout" method="post">
+                    <button type="submit">Logout</button>
+                </form>
+            </li>
+        <% } else { %>
+            <li class="mobile-nav__item">
+                <a class="<%= (typeof activeLogin !== 'undefined' && activeLogin) ? 'active' : null %>" href="/login">Login</a>
+            </li>
+            <li class="mobile-nav__item">
+                <a class="<%= (typeof activeSignup !== 'undefined' && activeSignup) ? 'active' : null %>" href="/signup">Signup</a>
+            </li>
+        <% } %>
+    </ul>
 </nav>
