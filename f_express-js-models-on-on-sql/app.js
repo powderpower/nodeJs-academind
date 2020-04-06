@@ -94,11 +94,10 @@ app.use(csrfProtection);
  * НО - csrfToken нужно прописать в формы.
  */
 app.use((req, res, next) => {
-    res.locals.isAuthenticated  = req.session.isLoggedIn;
-    res.locals.csrfToken        = req.csrfToken();
-    res.locals.errorMessage     = req.flash('error');
-
-    console.log(req.flash('error'));
+    res.locals.isAuthenticated      = req.session.isLoggedIn;
+    res.locals.csrfToken            = req.csrfToken();
+    res.locals.oldInput             = req.session.oldInput || {};
+    res.locals.validationErrors    = req.session.validation_errors || [];
 
     next();
 })

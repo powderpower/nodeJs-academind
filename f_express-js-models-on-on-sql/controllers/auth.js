@@ -1,6 +1,7 @@
-const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
-const { Op } = require('sequelize');
+const bcrypt                = require('bcryptjs');
+const crypto                = require('crypto');
+const { Op }                = require('sequelize');
+const { validationResult }  = require('express-validator/check');
 
 const User          = require('../models/user');
 const PasswordReset = require('../models/password_reset');
@@ -65,91 +66,87 @@ exports.getNewPassword = (req, res, next) => {
         .catch(x => console.log(x));
 }
 
-exports.postLogin = (req, res, next) => {
+/**
+ * async пишется перед фугкцией,
+ * в которой планируется использование await
+ * await пишется перед функцией которая вернет промис.
+ */
+exports.postLogin = async (req, res, next) => {
     const email = req.body.email;
     
-    let query = User.findOne({
+    const user = await User.findOne({
         where: {
             email: email,
         }
     });
 
-    return query
-        .then(user => {
-            if (! user) {
-                req.flash('error', 'User with that email not found');
+    if (! user) {
+        req.flash('error', 'User with that email not found');
 
-                return res.redirect('/login');
-            }
+        return res.redirect('/login');
+    }
 
-            bcrypt.compare(req.body.password, user.password)
-                .then(doMatch => {
-                    if (! doMatch) {
-                        req.flash('error', 'Invalid password.');
-                        
-                        return res.redirect('/login');
-                    }
+    const isOnMatch = await bcrypt.compare(req.body.password, user.password);
 
-                    req.session.user = user;
-                    req.session.isLoggedIn = true;
+    if (! isOnMatch) {
+        req.flash('error', 'Invalid password.');
+        
+        return res.redirect('/login');
+    }
 
-                    return req.session.save(() => {
-                        return res.redirect('/');
-                    });
-                })
-                .catch(x => console.log(x));
-        })
+    req.session.user = user;
+    req.session.isLoggedIn = true;
+
+    return req.session.save(() => {
+        return res.redirect('/');
+    });
 };
 
-exports.postSignup = (req, res, next) => {
+exports.postSignup = async (req, res, next) => {
+    const name = req.body.name;
     const email = req.body.email;
-    
-    let query = User.findOne({
-        where: {
-            email: email,
-        },
+    const password = req.body.password;
+    const confirm_password = req.body.confirm_password;
+
+    const errors = validationResult(req);
+
+    if (! errors.isEmpty()) {
+        req.session.validation_errors = errors.array();
+
+        req.session.oldInput = {
+            name,
+            email,
+            password,
+            confirm_password,
+        };
+        
+        return res.status(422)
+            .redirect('/signup');
+    }
+
+    const hashedPassword = await bcrypt.hash(req.body.password, 12);
+
+    const user = await User.create({
+        name: req.body.name,
+        email: email,
+        password: hashedPassword,
     });
 
-    return query
-        .then(model => {
-            if (model) {
-                req.flash('error', 'Email exists.');
-                
-                return res.redirect('/signup');
-            }
+    user.createCart();
 
-            /**
-             * Так нужно, потому что выполнение кода
-             * не останавливается, и происходит попытка
-             * создания юзера.
-             */
-            return bcrypt.hash(req.body.password, 12)
-                .then(hashedPassword => {
-                    return User.create({
-                        name: req.body.name,
-                        email: req.body.email,
-                        password: hashedPassword,
-                    });
-                })
-                .then(user => {
-                    transporter.sendMail({
-                        to: email,
-                        from: 'shop@node-complete.com',
-                        subject: 'Signup Succeeded',
-                        html: '<h1>You successfully signed up to node shop!</h1>',
-                    })
-                    .then(v => {
-                        console.log("\x1b[32m", 'SendGrid response: ' + v.message);
-                    })
-                    .catch(err => {
-                        console.log(err);
-                    });
-                    
-                    return user.createCart();
-                })
-                .then(v => res.redirect('/login'));
-        })
-        .catch(x => console.log(x));
+    transporter.sendMail({
+        to: email,
+        from: 'shop@node-complete.com',
+        subject: 'Signup Succeeded',
+        html: '<h1>You successfully signed up to node shop!</h1>',
+    })
+    .then(v => console.log("\x1b[32m", 'SendGrid response: ' + v.message))
+    .catch(err => console.log(err));
+
+    req.session.oldInput = {};
+    req.session.validation_errors = [];
+
+    return res.redirect('/login');
 };
 
 exports.postLogout = (req, res, next) => {

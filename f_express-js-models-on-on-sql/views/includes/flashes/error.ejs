@@ -1,5 +1,15 @@
-<% if (errorMessage.length) { %>
+<% if (validationErrors.length) { %>
     <div class="user-message danger">
-        <%= errorMessage %>
+        <% if (Array.isArray(validationErrors)) { %>
+
+            <ul>
+                <% for (message of validationErrors) { %>
+                    <li><%= message.msg %></li>
+                <% } %>
+            </ul>
+
+        <% } else { %>
+            <%= validationErrors %>
+        <% } %>
     </div>
 <% } %>
