@@ -1,7 +1,7 @@
 const bcrypt                = require('bcryptjs');
 const crypto                = require('crypto');
 const { Op }                = require('sequelize');
-const { validationResult }  = require('express-validator/check');
+const { validationResult }  = require('express-validator');
 
 const User          = require('../models/user');
 const PasswordReset = require('../models/password_reset');
@@ -72,27 +72,28 @@ exports.getNewPassword = (req, res, next) => {
  * await пишется перед функцией которая вернет промис.
  */
 exports.postLogin = async (req, res, next) => {
-    const email = req.body.email;
+    const email     = req.body.email;
+    const password  = req.body.password;
     
+    const errors = validationResult(req);
+
+    if (! errors.isEmpty()) {
+        req.session.validation_errors = errors.array();
+
+        req.session.oldInput = {
+            email,
+            password,
+        };
+        
+        return res.status(422)
+            .redirect('/login');
+    }
+
     const user = await User.findOne({
         where: {
             email: email,
         }
     });
-
-    if (! user) {
-        req.flash('error', 'User with that email not found');
-
-        return res.redirect('/login');
-    }
-
-    const isOnMatch = await bcrypt.compare(req.body.password, user.password);
-
-    if (! isOnMatch) {
-        req.flash('error', 'Invalid password.');
-        
-        return res.redirect('/login');
-    }
 
     req.session.user = user;
     req.session.isLoggedIn = true;
@@ -142,9 +143,6 @@ exports.postSignup = async (req, res, next) => {
     })
     .then(v => console.log("\x1b[32m", 'SendGrid response: ' + v.message))
     .catch(err => console.log(err));
-
-    req.session.oldInput = {};
-    req.session.validation_errors = [];
 
     return res.redirect('/login');
 };

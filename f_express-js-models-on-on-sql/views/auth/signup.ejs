@@ -8,7 +8,7 @@
 
     <main>
         <%- include('../includes/flashes/error.ejs') %>
-        <form class="login-form" action="/signup" method="POST" novalidate>
+        <form class="login-form" action="/signup" method="POST">
             <%- include('../includes/csrf_protection.ejs') %>
             <div class="form-control">
                 <label for="name">Name</label>

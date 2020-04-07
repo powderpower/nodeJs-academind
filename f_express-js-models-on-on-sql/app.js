@@ -99,6 +99,9 @@ app.use((req, res, next) => {
     res.locals.oldInput             = req.session.oldInput || {};
     res.locals.validationErrors    = req.session.validation_errors || [];
 
+    req.session.oldInput = {};
+    req.session.validation_errors = [];
+
     next();
 })
 
