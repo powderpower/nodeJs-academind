@@ -117,6 +117,7 @@ app.use('/admin', authMiddleware, adminRoutes);
 app.use(authRoutes);
 app.use(shopRoutes);
 app.use(errorController.throwNotFoud);
+app.use(errorController.throwInternalServerError);
 
 /**
  * Models
