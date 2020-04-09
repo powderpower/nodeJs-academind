@@ -1,5 +1,8 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+const express       = require('express');
+const bodyParser    = require('body-parser');
+
+const sequelize = require('./database/setup');
+const relations = require('./database/relations');
 
 const feedRoutes = require('./routes/feed');
 
@@ -26,8 +29,16 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     next();
+
+    console.log(req.url);
 });
 
-app.use(feedRoutes);
+app.use('/feed', feedRoutes);
 
-app.listen(8080);
+relations.defineRelations();
+
+sequelize
+    /** { force: true } только для девелопа - продакш - миграции */
+    .sync()
+    .then(v => app.listen(8080))
+    .catch(err => console.log(err));
